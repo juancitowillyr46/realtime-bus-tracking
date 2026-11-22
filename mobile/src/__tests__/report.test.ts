@@ -1,6 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { readingToSend, toHeading, toKmh, toLocationReport, type GpsReading } from '../driver/report';
+import {
+  MAX_REUSE_AGE_MS,
+  planSend,
+  toHeading,
+  toKmh,
+  toLocationReport,
+  type GpsReading,
+} from '../driver/report';
 
 const reading = (overrides: Partial<GpsReading> = {}): GpsReading => ({
   latitude: 4.8136,
@@ -75,21 +82,43 @@ describe('toHeading', () => {
   });
 });
 
-describe('readingToSend', () => {
-  it('is null before the first reading', () => {
-    expect(readingToSend(null, null)).toBeNull();
+describe('toLocationReport with another recordedAt', () => {
+  it('stamps the report with the given time, keeping the position of the reading', () => {
+    const now = Date.parse('2026-11-22T13:00:20Z');
+
+    const result = toLocationReport(reading(), 'bus-03', 'route-01', null, now);
+
+    expect(result.ok && result.report.recordedAt).toBe('2026-11-22T13:00:20.000Z');
+    expect(result.ok && result.report.latitude).toBe(4.8136);
+  });
+});
+
+describe('planSend', () => {
+  const latest = reading();
+  const t = latest.timestamp;
+
+  it('waits before the first reading', () => {
+    expect(planSend(null, null, t)).toEqual({ kind: 'waiting' });
   });
 
-  it('sends a reading newer than the last one sent', () => {
-    const latest = reading();
-
-    expect(readingToSend(latest, latest.timestamp - 1000)).toBe(latest);
-    expect(readingToSend(latest, null)).toBe(latest);
+  it('sends a new reading as it is', () => {
+    expect(planSend(latest, null, t + 500)).toEqual({ kind: 'send', reading: latest, recordedAt: t });
+    expect(planSend(latest, t - 5000, t + 500)).toEqual({ kind: 'send', reading: latest, recordedAt: t });
   });
 
-  it('does not send the same reading twice', () => {
-    const latest = reading();
+  it('re-sends a fresh reading stamped now when the phone stands still', () => {
+    const now = t + 5000;
 
-    expect(readingToSend(latest, latest.timestamp)).toBeNull();
+    expect(planSend(latest, t, now)).toEqual({ kind: 'send', reading: latest, recordedAt: now });
+  });
+
+  it('keeps re-sending after an earlier re-send, while the reading is fresh', () => {
+    const now = t + 10_000;
+
+    expect(planSend(latest, t + 5000, now)).toEqual({ kind: 'send', reading: latest, recordedAt: now });
+  });
+
+  it('waits when the latest reading is older than the reuse limit', () => {
+    expect(planSend(latest, t, t + MAX_REUSE_AGE_MS + 1)).toEqual({ kind: 'waiting' });
   });
 });

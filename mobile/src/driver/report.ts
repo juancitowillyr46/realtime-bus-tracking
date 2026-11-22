@@ -6,6 +6,13 @@ export const MAX_ACCURACY_METERS = 30;
 /** At most one position every 5 s, the same rhythm as the simulator. */
 export const SEND_INTERVAL_MS = 5000;
 
+/**
+ * A phone standing still stops delivering new readings. Within this age the last reading is
+ * re-sent with the current time, so the bus does not look frozen (or free) while it waits at a
+ * stop; older than this, the GPS is treated as lost.
+ */
+export const MAX_REUSE_AGE_MS = 30_000;
+
 /** The API rejects speeds above this (LocationReportValidator). */
 const MAX_SPEED_KMH = 150;
 
@@ -34,6 +41,7 @@ export function toLocationReport(
   busId: string,
   routeId: string,
   lastHeading: number | null,
+  recordedAt: number = reading.timestamp,
 ): ReportResult {
   if (reading.accuracy === null || reading.accuracy > MAX_ACCURACY_METERS) {
     return { ok: false, reason: 'inaccurate' };
@@ -48,7 +56,7 @@ export function toLocationReport(
       longitude: reading.longitude,
       speedKmh: toKmh(reading.speed),
       heading: toHeading(reading.heading, lastHeading),
-      recordedAt: new Date(reading.timestamp).toISOString(),
+      recordedAt: new Date(recordedAt).toISOString(),
     },
   };
 }
@@ -67,10 +75,27 @@ export function toHeading(degrees: number | null, lastHeading: number | null): n
   return degrees % 360;
 }
 
-/** The reading to send now: the latest one, unless it was already sent. */
-export function readingToSend(latest: GpsReading | null, lastSentTimestamp: number | null): GpsReading | null {
+export type SendPlan =
+  | { kind: 'send'; reading: GpsReading; recordedAt: number }
+  /** No reading yet, or the latest is older than MAX_REUSE_AGE_MS: the GPS is lost. */
+  | { kind: 'waiting' };
+
+/**
+ * What to send on this 5-second tick, given the latest reading and the recordedAt of the last
+ * position sent (both in ms):
+ * - a reading newer than the last one sent: send it as it is;
+ * - the same reading, still fresh: the phone is standing still, send it again stamped `now`;
+ * - no reading, or a stale one: wait for the GPS.
+ */
+export function planSend(latest: GpsReading | null, lastSentRecordedAt: number | null, now: number): SendPlan {
   if (!latest) {
-    return null;
+    return { kind: 'waiting' };
   }
-  return lastSentTimestamp !== null && latest.timestamp <= lastSentTimestamp ? null : latest;
+  if (lastSentRecordedAt === null || latest.timestamp > lastSentRecordedAt) {
+    return { kind: 'send', reading: latest, recordedAt: latest.timestamp };
+  }
+  if (now - latest.timestamp <= MAX_REUSE_AGE_MS) {
+    return { kind: 'send', reading: latest, recordedAt: now };
+  }
+  return { kind: 'waiting' };
 }

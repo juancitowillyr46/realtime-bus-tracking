@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 
 import { postLocation } from '../api';
-import { readingToSend, SEND_INTERVAL_MS, toLocationReport, type GpsReading } from './report';
+import { planSend, SEND_INTERVAL_MS, toLocationReport, type GpsReading } from './report';
 
 export type DriverStatus =
   | 'idle'
@@ -41,7 +41,7 @@ export function useDriver(busId: string, routeId: string, active: boolean): Driv
 
     let stopped = false;
     let subscription: Location.LocationSubscription | null = null;
-    let lastSentTimestamp: number | null = null;
+    let lastSentRecordedAt: number | null = null;
     let lastHeading: number | null = null;
     let sending = false;
 
@@ -76,12 +76,19 @@ export function useDriver(busId: string, routeId: string, active: boolean): Driv
     };
 
     const sendLatest = async () => {
-      const reading = readingToSend(latestReading.current, lastSentTimestamp);
-      if (!reading || sending) {
+      if (sending) {
+        return;
+      }
+      const plan = planSend(latestReading.current, lastSentRecordedAt, Date.now());
+      if (plan.kind === 'waiting') {
+        // Before the first reading this is the normal start; after it, the GPS was lost.
+        if (latestReading.current) {
+          setState((current) => ({ ...current, status: 'starting' }));
+        }
         return;
       }
 
-      const result = toLocationReport(reading, busId, routeId, lastHeading);
+      const result = toLocationReport(plan.reading, busId, routeId, lastHeading, plan.recordedAt);
       if (!result.ok) {
         setState((current) => ({ ...current, status: 'weakSignal' }));
         return;
@@ -90,7 +97,7 @@ export function useDriver(busId: string, routeId: string, active: boolean): Driv
       sending = true;
       try {
         await postLocation(result.report);
-        lastSentTimestamp = reading.timestamp;
+        lastSentRecordedAt = plan.recordedAt;
         lastHeading = result.report.heading;
         if (!stopped) {
           setState((current) => ({

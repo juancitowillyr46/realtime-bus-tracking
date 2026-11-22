@@ -88,6 +88,7 @@ La app tiene dos modos:
 - **Padre** (al abrirla): sigue la primera ruta y muestra la próxima parada, la velocidad y el rumbo de cada bus. Se reconecta sola: mientras no llega al servidor, muestra "Reconectando" y deja los buses en gris en su última posición conocida.
 - **Conductor** (botón "Modo conductor"): eliges un bus libre de la flota y la ruta, y la app envía el GPS del iPhone a `POST /api/locations` cada 5 s.
   - Las lecturas con precisión peor que 30 m no se envían ("Señal GPS débil").
+  - Si estás quieto, el iPhone deja de dar lecturas nuevas; la app reenvía la última (si tiene menos de 30 s) con la hora actual, para que el bus no parezca congelado ni quede libre.
   - A más de 150 m de la línea de la ruta aparece "Estás fuera de la ruta"; se sigue enviando, sin próxima parada.
   - Expo Go solo lee el GPS **con la app abierta**: si la cierras o bloqueas el teléfono, el envío se detiene. El GPS en segundo plano necesita un *development build* (fase 6).
 
