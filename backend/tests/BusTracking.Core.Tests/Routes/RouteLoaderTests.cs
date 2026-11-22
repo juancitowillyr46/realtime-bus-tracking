@@ -1,6 +1,6 @@
-using BusTracking.Core;
+using BusTracking.Core.Routes;
 
-namespace BusTracking.Simulator.Tests;
+namespace BusTracking.Core.Tests.Routes;
 
 public class RouteLoaderTests
 {

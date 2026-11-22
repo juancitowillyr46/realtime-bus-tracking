@@ -1,14 +1,45 @@
+using BusTracking.Api;
+using BusTracking.Api.Realtime;
 using BusTracking.Contracts;
 using BusTracking.Core;
+using BusTracking.Core.Routes;
 using BusTracking.Messaging;
+
+const string ExpoWebCorsPolicy = "ExpoWeb";
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddRouteCatalog();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProblemDetails();
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<BusPositionTracker>();
+builder.Services.AddHostedService<RealtimeLocationConsumer>();
+
+// The Expo app in a browser (npx expo start --web) runs on another origin. The iPhone app
+// is not a browser, so CORS does not apply to it. Development only: there is no deployment.
+// Cors:AllowedOrigins lists the origins (Expo uses 8081, or another port when it is taken).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddPolicy(ExpoWebCorsPolicy, policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
+
 var app = builder.Build();
+
+// Fail at startup, not on the first request, when the routes are missing or invalid.
+app.Services.GetRequiredService<RouteCatalog>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(ExpoWebCorsPolicy);
+}
+
+app.MapRouteEndpoints();
+app.MapHub<TrackingHub>(TrackingHubContract.Path);
 
 app.MapPost("/api/locations", async (
     LocationReport report,

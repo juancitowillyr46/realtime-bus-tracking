@@ -30,3 +30,12 @@ Content-Type: application/json
   "heading": 270,
   "recordedAt": "{{$datetime iso8601}}"
 }
+
+### Routes: id and name of every route
+GET {{baseUrl}}/api/routes
+
+### Route details: path and stops, in order
+GET {{baseUrl}}/api/routes/route-01
+
+### Unknown route: 404 with the message in Spanish
+GET {{baseUrl}}/api/routes/route-99
