@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { getRoute, getRoutes } from './api';
 import { applyPosition, applySnapshot, emptyBusState, type BusState } from './busStore';
+import { formatLatencyStats, latencyStats } from './latency';
 import { followRoute } from './tracking';
 import type { ConnectionStatus, RouteDetails, RouteSummary } from './types';
 
@@ -43,8 +44,25 @@ export function useLiveRoute(routeId: string | null): LiveRoute {
       .then((details) => !cancelled && setRoute(details))
       .catch(() => !cancelled && setError('No se pudo cargar la ruta.'));
 
+    // Development only: every minute, log the latency of the positions received in Metro's terminal.
+    let latencySamples: number[] = [];
+    const latencyTimer = __DEV__
+      ? setInterval(() => {
+          const stats = latencyStats(latencySamples);
+          if (stats) {
+            console.log(formatLatencyStats(stats));
+          }
+          latencySamples = [];
+        }, 60_000)
+      : undefined;
+
     const stop = followRoute(selectedId, {
-      onBusMoved: (position) => setBuses((state) => applyPosition(state, position)),
+      onBusMoved: (position) => {
+        if (__DEV__) {
+          latencySamples.push(Date.now() - Date.parse(position.recordedAt));
+        }
+        setBuses((state) => applyPosition(state, position));
+      },
       onSnapshot: (positions) => setBuses((state) => applySnapshot(state, positions)),
       onStatus: setStatus,
     });
@@ -52,6 +70,7 @@ export function useLiveRoute(routeId: string | null): LiveRoute {
     // Runs when the route changes (or on unmount): forget the old route's map and buses.
     return () => {
       cancelled = true;
+      clearInterval(latencyTimer);
       stop();
       setRoute(null);
       setBuses(emptyBusState);

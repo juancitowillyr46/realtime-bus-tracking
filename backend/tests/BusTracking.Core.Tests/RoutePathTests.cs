@@ -108,4 +108,33 @@ public class RoutePathTests
 
         Assert.Equal(path.TotalLengthMeters, path.DistanceAlong(new GeoPoint(0.02, 0.01)), 1e-6);
     }
+
+    [Fact]
+    public void DistanceFromLine_APointOnTheLine_IsZero()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        Assert.Equal(0, path.DistanceFromLine(new GeoPoint(0, 0.005)), 0.5);
+        Assert.Equal(0, path.DistanceFromLine(Middle), 0.5);
+    }
+
+    [Fact]
+    public void DistanceFromLine_APointBesideASegment_IsItsPerpendicularDistance()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        // 0.001° of latitude north of the first (eastbound) segment.
+        var distance = path.DistanceFromLine(new GeoPoint(0.001, 0.005));
+
+        Assert.Equal(GeoMath.DistanceMeters(new GeoPoint(0, 0.005), new GeoPoint(0.001, 0.005)), distance, 1);
+    }
+
+    [Fact]
+    public void DistanceFromLine_APointBeyondTheEnd_IsTheDistanceToTheLastPoint()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+        var beyond = new GeoPoint(0.012, 0.01);
+
+        Assert.Equal(GeoMath.DistanceMeters(End, beyond), path.DistanceFromLine(beyond), 1);
+    }
 }

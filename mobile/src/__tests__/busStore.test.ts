@@ -17,6 +17,7 @@ function position(busId: string, secondsAfterT0: number, latitude = 4.81): BusPo
     recordedAt: new Date(t0 + secondsAfterT0 * 1000).toISOString(),
     nextStopId: 'stop-02',
     nextStopName: 'Parada El Roble',
+    distanceFromRouteMeters: 12,
   };
 }
 

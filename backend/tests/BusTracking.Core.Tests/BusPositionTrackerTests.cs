@@ -7,7 +7,7 @@ public class BusPositionTrackerTests
     private static readonly DateTimeOffset Now = new(2026, 11, 22, 12, 0, 0, TimeSpan.Zero);
 
     private static BusPosition Position(string busId, DateTimeOffset recordedAt, string routeId = "route-01") =>
-        new(Guid.NewGuid(), busId, routeId, 4.81, -75.70, 25, 270, recordedAt, "stop-01", "Parada A");
+        new(Guid.NewGuid(), busId, routeId, 4.81, -75.70, 25, 270, recordedAt, "stop-01", "Parada A", 0);
 
     [Fact]
     public void TryUpdate_FirstPosition_IsAccepted()

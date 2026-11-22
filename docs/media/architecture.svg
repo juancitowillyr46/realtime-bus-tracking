@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
-  <title id="title">Arquitectura de realtime-bus-tracking, fase 2</title>
-  <desc id="desc">El simulador envía ubicaciones a la API de ingesta, que las publica en el exchange tracking.events de RabbitMQ. La cola realtime.location alimenta al consumidor de tiempo real, que las envía por SignalR a la app Expo. Los mensajes que fallan 3 veces van a tracking.dead-letter. EventTail imprime los eventos. El modo conductor, las geocercas y el historial están planeados.</desc>
+  <title id="title">Arquitectura de realtime-bus-tracking, fase 3</title>
+  <desc id="desc">El simulador envía ubicaciones a la API de ingesta, que las publica en el exchange tracking.events de RabbitMQ. La cola realtime.location alimenta al consumidor de tiempo real, que las envía por SignalR a la app Expo. Los mensajes que fallan 3 veces van a tracking.dead-letter. EventTail imprime los eventos. La app en modo conductor envía el GPS del iPhone a la misma API. Las geocercas y el historial están planeados.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -18,7 +18,7 @@
   <rect x="0" y="0" width="1200" height="680" rx="16" fill="#FFFFFF"/>
 
   <!-- Title -->
-  <text x="40" y="48" font-size="24" font-weight="700" fill="#1B1D21">Arquitectura · fase 2</text>
+  <text x="40" y="48" font-size="24" font-weight="700" fill="#1B1D21">Arquitectura · fase 3</text>
   <text x="40" y="72" font-size="14" fill="#5B5F66">Del bus al mapa: cada ubicación pasa por RabbitMQ y llega a la app por SignalR</text>
 
   <!-- ===== Producers ===== -->
@@ -27,9 +27,10 @@
   <text x="140" y="178" font-size="13" fill="#5B5F66" text-anchor="middle">2 buses en rutas GeoJSON</text>
   <text x="140" y="195" font-size="12" fill="#5B5F66" text-anchor="middle">un reporte cada 5 s</text>
 
-  <rect x="40" y="240" width="200" height="84" rx="12" fill="#FFFFFF" stroke="#9AA0A8" stroke-width="1.5" stroke-dasharray="6 5"/>
-  <text x="140" y="275" font-size="16" font-weight="700" fill="#5B5F66" text-anchor="middle">Modo conductor</text>
-  <text x="140" y="298" font-size="13" fill="#5B5F66" text-anchor="middle">GPS del iPhone · fase 3</text>
+  <rect x="40" y="240" width="200" height="84" rx="12" fill="#FFFFFF" stroke="#3A3E45" stroke-width="1.5"/>
+  <text x="140" y="275" font-size="16" font-weight="700" fill="#1B1D21" text-anchor="middle">App · modo conductor</text>
+  <text x="140" y="298" font-size="13" fill="#5B5F66" text-anchor="middle">GPS del iPhone cada 5 s</text>
+  <text x="140" y="315" font-size="12" fill="#5B5F66" text-anchor="middle">(solo con la app abierta)</text>
 
   <!-- ===== Ingest API ===== -->
   <rect x="300" y="160" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#3A3E45" stroke-width="1.5"/>
@@ -40,8 +41,8 @@
 
   <!-- Simulator -> API -->
   <path d="M240 162 H270 V195 H298" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
-  <!-- Driver -> API (planned) -->
-  <path d="M240 282 H270 V235 H298" fill="none" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-muted)"/>
+  <!-- Driver mode -> API -->
+  <path d="M240 282 H270 V235 H298" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
 
   <!-- ===== RabbitMQ ===== -->
   <rect x="560" y="100" width="290" height="330" rx="16" fill="#FFF7E6" stroke="#F2A900" stroke-width="2"/>
@@ -92,8 +93,8 @@
   <rect x="900" y="410" width="260" height="96" rx="16" fill="#FFFFFF" stroke="#1F5FBF" stroke-width="2.5"/>
   <circle cx="930" cy="440" r="9" fill="#F2A900" stroke="#1B1D21" stroke-width="2"/>
   <text x="948" y="446" font-size="16" font-weight="700" fill="#1B1D21">App Expo</text>
-  <text x="920" y="473" font-size="13" fill="#5B5F66">iPhone · Apple Maps (Expo Go)</text>
-  <text x="920" y="493" font-size="13" fill="#5B5F66">Navegador · OpenStreetMap</text>
+  <text x="920" y="473" font-size="13" fill="#5B5F66">Modo padre · iPhone (Apple Maps)</text>
+  <text x="920" y="493" font-size="13" fill="#5B5F66">y navegador (OpenStreetMap)</text>
 
   <!-- hub -> app -->
   <path d="M1030 314 V408" fill="none" stroke="#1F5FBF" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
@@ -130,7 +131,7 @@
     <line x1="900" y1="560" x2="944" y2="560" stroke="#3A3E45" stroke-width="2"/>
     <text x="954" y="565">existe hoy</text>
     <line x1="900" y1="590" x2="944" y2="590" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5"/>
-    <text x="954" y="595">planeado (fases 3 a 5)</text>
+    <text x="954" y="595">planeado (fases 4 y 5)</text>
     <rect x="900" y="610" width="44" height="22" rx="6" fill="#FFF7E6" stroke="#F2A900" stroke-width="1.5"/>
     <text x="954" y="626">corre en Docker</text>
   </g>

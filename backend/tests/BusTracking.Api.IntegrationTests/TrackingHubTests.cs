@@ -46,6 +46,7 @@ public sealed class TrackingHubTests : IClassFixture<RabbitMqFixture>, IDisposab
         Assert.Equal(Latitude, position.Latitude);
         Assert.Equal("stop-02", position.NextStopId);
         Assert.Equal("Parada B", position.NextStopName);
+        Assert.Equal(0, position.DistanceFromRouteMeters!.Value, 1);
     }
 
     [Fact]
@@ -75,6 +76,20 @@ public sealed class TrackingHubTests : IClassFixture<RabbitMqFixture>, IDisposab
 
         var current = Assert.Single(lateClient.InitialPositions);
         Assert.Equal(eventId, current.EventId);
+    }
+
+    [Fact]
+    public async Task BusThatReported_IsInUseInTheFleet()
+    {
+        await using var api = await StartApiAsync();
+        await using var client = await api.ConnectAsync(TestRoutes.RouteId);
+
+        await api.PostLocationAsync("bus-02", DateTimeOffset.UtcNow);
+        await client.NextAsync();
+
+        var fleet = await api.GetFleetAsync();
+        Assert.True(fleet.Single(bus => bus.BusId == "bus-02").InUse);
+        Assert.False(fleet.Single(bus => bus.BusId == "bus-01").InUse);
     }
 
     [Fact]
@@ -144,6 +159,9 @@ public sealed class TrackingHubTests : IClassFixture<RabbitMqFixture>, IDisposab
             var accepted = await response.Content.ReadFromJsonAsync<LocationAccepted>();
             return accepted!.EventId;
         }
+
+        public async Task<List<BusStatus>> GetFleetAsync() =>
+            (await _http.GetFromJsonAsync<List<BusStatus>>("/api/buses", TrackingJson.Options))!;
 
         public async ValueTask DisposeAsync()
         {

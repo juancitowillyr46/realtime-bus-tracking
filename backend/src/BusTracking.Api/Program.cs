@@ -39,6 +39,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapRouteEndpoints();
+app.MapFleetEndpoints();
 app.MapHub<TrackingHub>(TrackingHubContract.Path);
 
 app.MapPost("/api/locations", async (
