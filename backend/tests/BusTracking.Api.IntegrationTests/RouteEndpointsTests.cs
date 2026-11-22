@@ -11,43 +11,25 @@ namespace BusTracking.Api.IntegrationTests;
 /// </summary>
 public sealed class RouteEndpointsTests : IDisposable
 {
-    private const string TestRoute = """
-        {
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": { "kind": "route", "routeId": "route-test", "name": "Ruta de prueba" },
-              "geometry": { "type": "LineString", "coordinates": [[-75.69, 4.80], [-75.70, 4.81], [-75.71, 4.81]] }
-            },
-            {
-              "type": "Feature",
-              "properties": { "kind": "stop", "stopId": "stop-02", "name": "Parada B", "order": 2 },
-              "geometry": { "type": "Point", "coordinates": [-75.71, 4.81] }
-            },
-            {
-              "type": "Feature",
-              "properties": { "kind": "stop", "stopId": "stop-01", "name": "Parada A", "order": 1 },
-              "geometry": { "type": "Point", "coordinates": [-75.69, 4.80] }
-            }
-          ]
-        }
-        """;
-
-    private readonly string _routesDirectory = Directory.CreateTempSubdirectory("bus-tracking-routes-").FullName;
+    private readonly TestRoutes _routes = new();
     private readonly WebApplicationFactory<Program> _factory;
 
     public RouteEndpointsTests()
     {
-        File.WriteAllText(Path.Combine(_routesDirectory, "route-test.geojson"), TestRoute);
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.UseSetting("Routes:Directory", _routesDirectory));
+        {
+            builder.UseSetting("Routes:Directory", _routes.Directory);
+
+            // Keep the realtime consumer away from a developer's local broker: nothing listens
+            // on port 1, so it just keeps retrying in the background while these tests run.
+            builder.UseSetting("RabbitMq:Port", "1");
+        });
     }
 
     public void Dispose()
     {
         _factory.Dispose();
-        Directory.Delete(_routesDirectory, recursive: true);
+        _routes.Dispose();
     }
 
     [Fact]

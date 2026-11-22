@@ -26,7 +26,8 @@ public sealed class RabbitMqFixture : IAsyncLifetime
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
 
-    public WebApplicationFactory<Program> CreateApiFactory() =>
+    /// <param name="routesDirectory">Optional <c>Routes:Directory</c>; by default the API finds data/routes.</param>
+    public WebApplicationFactory<Program> CreateApiFactory(string? routesDirectory = null) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -36,6 +37,7 @@ public sealed class RabbitMqFixture : IAsyncLifetime
                     ["RabbitMq:UserName"] = UserName,
                     ["RabbitMq:Password"] = Password,
                     ["RabbitMq:VirtualHost"] = "/",
+                    ["Routes:Directory"] = routesDirectory,
                 })));
 
     /// <summary>A connection provider for running a consumer or publisher outside the API.</summary>
