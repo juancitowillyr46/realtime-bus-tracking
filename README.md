@@ -142,6 +142,8 @@ Falta medir la latencia de punta a punta hasta la app (`ahora - recordedAt`, p50
 
 ## Documentación
 
+- [Resumen ejecutivo](docs/executive-summary.md): qué es, qué funciona y próximos pasos, sin tecnicismos
+- [Documento técnico](docs/technical-overview.md): arquitectura, RabbitMQ, algoritmos, reglas de negocio, decisiones y camino a producción
 - [Brief y roadmap](docs/brief.md)
 - [Handoffs de cada fase](docs/handoffs/): el plan que se le entrega a Claude Code en cada fase
 
