@@ -20,8 +20,10 @@ builder.Services.AddHostedService<RealtimeLocationConsumer>();
 
 // The Expo app in a browser (npx expo start --web) runs on another origin. The iPhone app
 // is not a browser, so CORS does not apply to it. Development only: there is no deployment.
+// Cors:AllowedOrigins lists the origins (Expo uses 8081, or another port when it is taken).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy(ExpoWebCorsPolicy, policy => policy
-    .WithOrigins("http://localhost:8081")
+    .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()));
