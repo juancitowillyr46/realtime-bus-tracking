@@ -52,6 +52,30 @@ EventTail accepts a binding pattern: `dotnet run -- --pattern location.updated.r
 
 Manual requests are in [`BusTracking.Api.http`](backend/src/BusTracking.Api/BusTracking.Api.http).
 
+### Reach the API from a phone
+
+The default profile only listens on `localhost`. To open the API (and the Expo dev server) to your local network, on Windows:
+
+1. Find the PC's IP on the Wi-Fi adapter: `ipconfig` → *IPv4 Address* (for example `192.168.1.10`).
+2. Mark the Wi-Fi network as **private**, and allow the API (5080) and the Expo dev server (8081) through the firewall. Once, in an **administrator** PowerShell:
+
+   ```powershell
+   Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private
+   New-NetFirewallRule -DisplayName "BusTracking API 5080" -Direction Inbound -Protocol TCP -LocalPort 5080 -Action Allow -Profile Private
+   New-NetFirewallRule -DisplayName "BusTracking Expo 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Private
+   ```
+
+   Only do this on a network you trust (home), never on public Wi-Fi.
+3. Run the API with the `lan` profile, which listens on every interface:
+
+   ```bash
+   cd backend/src/BusTracking.Api && dotnet run --launch-profile lan
+   ```
+
+4. From Safari on the phone (same Wi-Fi), open `http://<pc-ip>:5080/health`: it should show `healthy`.
+
+If the phone still cannot reach the PC (some routers isolate Wi-Fi clients), use a tunnel instead: `ngrok http 5080` gives a public HTTPS URL for the API.
+
 ## Routes
 
 Routes live in [`data/routes/`](data/routes) as GeoJSON drawn in [geojson.io](https://geojson.io): one `LineString` with `routeId` and `name`, plus one `Point` per stop with `stopId`, `name` and `order`. Positions are `[longitude, latitude]`. All names are fictitious; `route-01` is a provisional route in Pereira, Colombia.

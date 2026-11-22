@@ -173,9 +173,12 @@ Commit: `feat: add signalr hub and realtime location consumer`
   - cómo ver la IP del PC (`ipconfig`);
   - la regla del Firewall de Windows, que se ejecuta una vez en una terminal de administrador:
     ```powershell
+    Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private
     New-NetFirewallRule -DisplayName "BusTracking API 5080" -Direction Inbound -Protocol TCP -LocalPort 5080 -Action Allow -Profile Private
+    New-NetFirewallRule -DisplayName "BusTracking Expo 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Private
     ```
-  - que la red Wi-Fi debe estar marcada como **privada** en Windows.
+  - que la red Wi-Fi debe estar marcada como **privada** en Windows. En el PC de desarrollo estaba como pública, y por eso se agregó el `Set-NetConnectionProfile`;
+  - que Expo Go también necesita el puerto **8081**, porque descarga el código de la app del servidor de Expo en el PC.
 - **Verificación manual:** desde Safari en el iPhone, abrir `http://<ip-del-pc>:5080/health` y ver `healthy`. Si no funciona, el plan B es ngrok, documentado en el README pero sin automatizar.
 
 Commit: `chore: allow lan access to the api`
