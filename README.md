@@ -1,42 +1,50 @@
 # realtime-bus-tracking
 
-Proof of concept: simulated school buses report their position, a .NET backend fans each event out through RabbitMQ to independent consumers, and a React Native (Expo) app shows the buses moving on a map in real time.
+Prueba de concepto: buses escolares simulados reportan su ubicación, un backend en .NET distribuye cada evento por RabbitMQ a consumidores independientes y una app en React Native (Expo) muestra los buses moviéndose en un mapa en tiempo real.
 
-**Status: phase 2 of 5** — the buses move live on a map in the iPhone (Expo Go) and in the browser. Driver mode, geofences and history come in later phases ([roadmap](docs/brief.md#roadmap)).
+**Estado: fase 2 de 5.** Los buses se mueven en vivo en un mapa, en el iPhone (Expo Go) y en el navegador. El modo conductor, las geocercas y el historial llegan en las fases siguientes ([roadmap](docs/brief.md#roadmap)).
 
-## Architecture
+## Arquitectura
 
 ```mermaid
 flowchart TD
-    SIM["Simulator<br/>buses moving on GeoJSON routes"] -->|POST /api/locations| API
-    API["Ingest API<br/>validates and publishes"] --> MQ
+    SIM["Simulador<br/>buses sobre rutas GeoJSON"] -->|POST /api/locations| API
+    API["API de ingesta<br/>valida y publica"] --> MQ
     MQ[["RabbitMQ<br/>exchange tracking.events (topic)"]]
-    MQ -->|"realtime.location<br/>(durable queue)"| RT["Realtime consumer<br/>adds the next stop"]
-    RT --> HUB["SignalR hub<br/>/hubs/tracking"]
-    HUB -->|WebSocket| APP["Expo app<br/>map on iPhone and web"]
-    MQ -->|"location.updated.#"| TAIL["EventTail<br/>debug console"]
-    MQ -.->|"after 3 failed attempts"| DLQ[["tracking.dlx →<br/>tracking.dead-letter"]]
+    MQ -->|"realtime.location<br/>(cola durable)"| RT["Consumidor de tiempo real<br/>agrega la próxima parada"]
+    RT --> HUB["Hub de SignalR<br/>/hubs/tracking"]
+    HUB -->|WebSocket| APP["App Expo<br/>mapa en iPhone y web"]
+    MQ -->|"location.updated.#"| TAIL["EventTail<br/>consola de depuración"]
+    MQ -.->|"tras 3 intentos fallidos"| DLQ[["tracking.dlx →<br/>tracking.dead-letter"]]
 
-    DRV["Driver mode (phase 3)"] -.-> API
-    MQ -.->|phase 4| GEO["Geofence worker"]
-    MQ -.->|phase 5| HIS["History worker"]
+    DRV["Modo conductor (fase 3)"] -.-> API
+    MQ -.->|fase 4| GEO["Worker de geocercas"]
+    MQ -.->|fase 5| HIS["Worker de historial"]
 ```
 
-Solid lines exist today; dotted lines are planned. The realtime consumer and the hub run inside the API process.
+Las líneas continuas ya existen; las punteadas están planeadas. El consumidor de tiempo real y el hub corren dentro del proceso de la API.
 
-| Event | Routing key | Published by | Queues |
+| Evento | Clave de enrutamiento | Lo publica | Colas |
 | --- | --- | --- | --- |
-| `LocationUpdated` | `location.updated.{routeId}` | Ingest API | `realtime.location` |
+| `LocationUpdated` | `location.updated.{routeId}` | API de ingesta | `realtime.location` |
 
-Every message is persistent JSON (camelCase) with `MessageId = eventId` and `Type = LocationUpdated`. The API uses publisher confirms: it only answers `202 Accepted` once RabbitMQ has the message.
+Cada mensaje es JSON persistente (camelCase), con `MessageId = eventId` y `Type = LocationUpdated`. La API usa *publisher confirms*: solo responde `202 Accepted` cuando RabbitMQ ya tiene el mensaje.
 
-Each consumer owns a durable **quorum** queue with manual acks and a prefetch of 10. A message whose handler keeps failing is retried and, after 3 attempts (`x-delivery-limit`), moves to `tracking.dead-letter`; unreadable messages go there straight away. Consumers skip an `eventId` they already handled, and the realtime consumer drops a position recorded before the bus's latest one, so the map never moves a bus backwards.
+Cada consumidor tiene su propia cola durable de tipo **quorum**, con *ack* manual y un `prefetch` de 10:
+- Un mensaje cuyo procesamiento sigue fallando se reintenta. Después de 3 intentos (`x-delivery-limit`) pasa a `tracking.dead-letter`.
+- Un mensaje que no se puede leer va directo a esa cola.
+- Un `eventId` que ya se procesó se ignora.
+- El consumidor de tiempo real descarta una posición registrada antes que la última del bus, para que el mapa nunca mueva un bus hacia atrás.
 
-> Since RabbitMQ 4.3 only `basic.reject` counts towards `x-delivery-limit` (`basic.nack` does not), so the consumers reject a failed message instead of nacking it.
+> Desde RabbitMQ 4.3, solo `basic.reject` cuenta para `x-delivery-limit` (`basic.nack` no). Por eso los consumidores rechazan con *reject* los mensajes que fallan.
 
-## Run it locally
+## Cómo correrlo
 
-Requirements: Docker Desktop, .NET 10 SDK, Node.js 22.13 or later (24 LTS recommended), and for the phone the Expo Go app plus a free [Expo account](https://expo.dev/signup).
+Requisitos:
+- Docker Desktop;
+- .NET 10 SDK;
+- Node.js 22.13 o superior (se recomienda la 24 LTS);
+- para el teléfono, la app Expo Go y una [cuenta de Expo](https://expo.dev/signup) gratuita.
 
 ```bash
 # 1. RabbitMQ (management UI at http://localhost:15672)
@@ -47,7 +55,7 @@ docker compose -f infra/docker-compose.yml up -d
 dotnet user-secrets set "RabbitMq:Password" "<password from infra/.env>" --project backend/src/BusTracking.Api
 ```
 
-Then, in separate terminals:
+Luego, cada uno en su propia terminal:
 
 ```bash
 cd backend/src/BusTracking.Api && dotnet run              # http://localhost:5080 (use --launch-profile lan for a phone)
@@ -55,24 +63,24 @@ cd backend/src/BusTracking.Simulator && dotnet run        # 2 buses on route-01,
 cd backend/tools/BusTracking.EventTail && dotnet run      # optional: prints every event
 ```
 
-EventTail accepts a binding pattern: `dotnet run -- --pattern location.updated.route-01`.
+EventTail acepta un patrón de enlace: `dotnet run -- --pattern location.updated.route-01`.
 
-Manual requests are in [`BusTracking.Api.http`](backend/src/BusTracking.Api/BusTracking.Api.http).
+Hay peticiones de ejemplo en [`BusTracking.Api.http`](backend/src/BusTracking.Api/BusTracking.Api.http).
 
 ### API
 
-| Endpoint | What it does |
+| Endpoint | Qué hace |
 | --- | --- |
-| `POST /api/locations` | Ingests a location report and publishes `LocationUpdated` |
-| `GET /api/routes`, `GET /api/routes/{routeId}` | The routes, with their path and stops, to draw them |
-| `GET /health` | `200` while the RabbitMQ connection is open |
-| SignalR `/hubs/tracking` | `JoinRoute(routeId)` returns the buses' current positions and subscribes to `busMoved` |
+| `POST /api/locations` | Recibe un reporte de ubicación y publica `LocationUpdated` |
+| `GET /api/routes`, `GET /api/routes/{routeId}` | Las rutas, con su recorrido y paradas, para dibujarlas |
+| `GET /health` | `200` mientras la conexión con RabbitMQ esté abierta |
+| SignalR `/hubs/tracking` | `JoinRoute(routeId)` devuelve las posiciones actuales de los buses y suscribe a `busMoved` |
 
-## The app
+## La app
 
-The app lives in [`mobile/`](mobile): Expo **SDK 58**, TypeScript, one screen with the live map. The iPhone uses Apple Maps (`react-native-maps`); the browser uses OpenStreetMap tiles (`react-leaflet`), because `react-native-maps` has no web support.
+La app está en [`mobile/`](mobile): Expo **SDK 58**, TypeScript y una sola pantalla con el mapa en vivo. En el iPhone usa Apple Maps (`react-native-maps`). En el navegador usa los mapas de OpenStreetMap (`react-leaflet`), porque `react-native-maps` no funciona en web.
 
-> Expo Go on the App Store only runs the latest SDK. If Expo Go says the project is incompatible, check which SDK it supports before upgrading.
+> Expo Go del App Store solo abre proyectos del SDK más reciente. Si Expo Go dice que el proyecto es incompatible, revisa qué SDK soporta antes de actualizar.
 
 ```bash
 cd mobile
@@ -82,14 +90,14 @@ npx expo login                # the same free Expo account you use in Expo Go
 npx expo start                # scan the QR code with the iPhone camera; press w for the browser
 ```
 
-The app follows the first route, shows each bus's next stop, speed and heading, and reconnects on its own: while the server is unreachable it shows "Reconectando" and greys out the buses at their last known position.
+La app sigue la primera ruta y muestra la próxima parada, la velocidad y el rumbo de cada bus. Se reconecta sola: mientras no llega al servidor, muestra "Reconectando" y deja los buses en gris en su última posición conocida.
 
-### Reach the PC from a phone
+### Conectar el teléfono al PC
 
-The phone needs the API (5080) and the Expo dev server (8081). On Windows:
+El teléfono necesita llegar a la API (puerto 5080) y al servidor de Expo (puerto 8081). En Windows:
 
-1. Find the PC's IP on the Wi-Fi adapter: `ipconfig` → *IPv4 Address* (for example `192.168.1.10`), and put it in `mobile/.env`.
-2. Mark the Wi-Fi network as **private** and allow both ports through the firewall. Once, in an **administrator** PowerShell:
+1. Busca la IP del PC en el adaptador Wi-Fi con `ipconfig` → *Dirección IPv4* (por ejemplo `192.168.1.10`) y ponla en `mobile/.env`.
+2. Marca la red Wi-Fi como **privada** y permite los dos puertos en el Firewall. Se hace una sola vez, en un PowerShell de **administrador**:
 
    ```powershell
    Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private
@@ -97,40 +105,44 @@ The phone needs the API (5080) and the Expo dev server (8081). On Windows:
    New-NetFirewallRule -DisplayName "BusTracking Expo 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Private
    ```
 
-   Only do this on a network you trust (home), never on public Wi-Fi.
-3. Run the API with the `lan` profile, which listens on every interface: `dotnet run --launch-profile lan`.
-4. From Safari on the phone (same Wi-Fi), open `http://<pc-ip>:5080/health`: it should show `healthy`.
+   Hazlo solo en una red de confianza, como la de tu casa, nunca en un Wi-Fi público.
+3. Corre la API con el perfil `lan`, que escucha en todas las interfaces: `dotnet run --launch-profile lan`.
+4. Desde Safari en el teléfono, conectado al mismo Wi-Fi, abre `http://<pc-ip>:5080/health`. Debe mostrar `healthy`.
 
-If the phone still cannot reach the PC (some routers isolate Wi-Fi clients), use a tunnel instead: `ngrok http 5080` gives a public HTTPS URL for the API.
+Si el teléfono sigue sin llegar al PC (algunos routers aíslan a los dispositivos del Wi-Fi), usa un túnel: `ngrok http 5080` da una URL pública con HTTPS para la API.
 
-The browser version calls the API from `http://localhost:8081`, which `Cors:AllowedOrigins` in `appsettings.json` allows in Development.
+La versión web llama a la API desde `http://localhost:8081`. Ese origen está permitido en Development con `Cors:AllowedOrigins`, en `appsettings.json`.
 
-## Routes
+## Rutas
 
-Routes live in [`data/routes/`](data/routes) as GeoJSON drawn in [geojson.io](https://geojson.io): one `LineString` with `routeId` and `name`, plus one `Point` per stop with `stopId`, `name` and `order`. Positions are `[longitude, latitude]`. All names are fictitious; `route-01` is a provisional route in Pereira, Colombia.
+Las rutas están en [`data/routes/`](data/routes) como GeoJSON dibujado en [geojson.io](https://geojson.io):
+- una `LineString` con `routeId` y `name`;
+- un `Point` por parada, con `stopId`, `name` y `order`.
 
-## Tests
+Las posiciones van como `[longitud, latitud]`. Todos los nombres son ficticios. `route-01` es una ruta provisional en Pereira, Colombia.
+
+## Pruebas
 
 ```bash
 dotnet test backend/BusTracking.slnx     # unit + integration (Testcontainers: Docker must be running)
 cd mobile && npm run typecheck && npm run lint && npm test
 ```
 
-The integration tests cover the whole realtime path with a real broker: `POST /api/locations` → RabbitMQ → `realtime.location` → SignalR client, plus retries, the dead letter queue and idempotency.
+Las pruebas de integración recorren todo el camino en tiempo real con un RabbitMQ real: `POST /api/locations` → RabbitMQ → `realtime.location` → cliente de SignalR. También cubren los reintentos, la cola de fallidos y la idempotencia.
 
-## Metrics
+## Métricas
 
-| Path | p50 | p95 | Measured |
+| Camino | p50 | p95 | Medición |
 | --- | --- | --- | --- |
-| Simulator → RabbitMQ → EventTail | 4 ms | 16 ms | Phase 1, 26 messages on a local PC |
+| Simulador → RabbitMQ → EventTail | 4 ms | 16 ms | Fase 1, 26 mensajes en un PC local |
 
-The end-to-end latency to the app (`now - recordedAt` on the phone, p50 and p95) is still to be measured.
+Falta medir la latencia de punta a punta hasta la app (`ahora - recordedAt` en el teléfono, p50 y p95).
 
-## Docs
+## Documentación
 
-- [Brief and roadmap](docs/brief.md)
-- [Phase handoffs](docs/handoffs/) — the plan given to Claude Code for each phase
+- [Brief y roadmap](docs/brief.md)
+- [Handoffs de cada fase](docs/handoffs/): el plan que se le entrega a Claude Code en cada fase
 
-## License
+## Licencia
 
 [MIT](LICENSE)
