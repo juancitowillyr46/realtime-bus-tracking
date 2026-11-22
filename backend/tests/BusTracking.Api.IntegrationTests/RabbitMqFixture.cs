@@ -14,8 +14,7 @@ public sealed class RabbitMqFixture : IAsyncLifetime
     private const string Password = "test";
     private const int AmqpPort = 5672;
 
-    private readonly RabbitMqContainer _container = new RabbitMqBuilder()
-        .WithImage("rabbitmq:4-management")
+    private readonly RabbitMqContainer _container = new RabbitMqBuilder("rabbitmq:4-management")
         .WithUsername(UserName)
         .WithPassword(Password)
         .Build();
