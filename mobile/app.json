@@ -26,7 +26,8 @@
         {
           "locationWhenInUsePermission": "En modo conductor, Bus Tracking envía tu ubicación para mostrar el bus en el mapa. Solo se usa mientras la app está abierta."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
