@@ -119,7 +119,8 @@ const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32, backgroundColor: colors.surface },
   message: { fontSize: 15, color: colors.textMuted, textAlign: 'center' },
   // zIndex: on web, Leaflet's panes use z-index 400-1000 and would cover these overlays.
-  top: { position: 'absolute', left: 16, right: 16, gap: 8, zIndex: 1100 },
+  // In development Expo Go draws its menu button in the top-right corner; keep clear of it.
+  top: { position: 'absolute', left: 16, right: __DEV__ && Platform.OS !== 'web' ? 76 : 16, gap: 8, zIndex: 1100 },
   recenter: {
     position: 'absolute',
     zIndex: 1100,
