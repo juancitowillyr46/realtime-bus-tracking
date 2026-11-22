@@ -1,6 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { busNumber, busTitle, formatAge, headingLabel, stopShortName } from '../format';
+import {
+  busNumber,
+  busTitle,
+  formatAccuracy,
+  formatAge,
+  formatDistance,
+  headingLabel,
+  stopShortName,
+} from '../format';
 
 describe('headingLabel', () => {
   it.each([
@@ -50,5 +58,20 @@ describe('stopShortName', () => {
   it('drops the "Parada" prefix', () => {
     expect(stopShortName('Parada El Roble')).toBe('El Roble');
     expect(stopShortName('Terminal Norte')).toBe('Terminal Norte');
+  });
+});
+
+describe('formatDistance', () => {
+  it('uses meters below 1 km and kilometers with a decimal comma above', () => {
+    expect(formatDistance(149.6)).toBe('150 m');
+    expect(formatDistance(850)).toBe('850 m');
+    expect(formatDistance(1234)).toBe('1,2 km');
+  });
+});
+
+describe('formatAccuracy', () => {
+  it('shows the radius or a dash when unknown', () => {
+    expect(formatAccuracy(7.6)).toBe('± 8 m');
+    expect(formatAccuracy(null)).toBe('—');
   });
 });

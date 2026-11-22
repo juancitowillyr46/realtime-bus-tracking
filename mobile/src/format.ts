@@ -34,3 +34,16 @@ export function formatAge(seconds: number): string {
 export function stopShortName(name: string): string {
   return name.replace(/^Parada\s+/i, '');
 }
+
+/** "850 m", "1,2 km": Spanish decimal comma. */
+export function formatDistance(meters: number): string {
+  if (meters < 1000) {
+    return `${Math.round(meters)} m`;
+  }
+  return `${(meters / 1000).toFixed(1).replace('.', ',')} km`;
+}
+
+/** "± 8 m", or "—" when the device does not know its accuracy. */
+export function formatAccuracy(meters: number | null): string {
+  return meters === null ? '—' : `± ${Math.round(meters)} m`;
+}
