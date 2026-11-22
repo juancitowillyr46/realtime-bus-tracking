@@ -1,0 +1,94 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "route",
+        "routeId": "route-01",
+        "name": "Ruta Occidente (provisional)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-75.6961, 4.8133],
+          [-75.6992, 4.8139],
+          [-75.703, 4.8141],
+          [-75.7068, 4.8136],
+          [-75.711, 4.8128],
+          [-75.7152, 4.8121],
+          [-75.7195, 4.8117],
+          [-75.724, 4.8116],
+          [-75.7282, 4.8119],
+          [-75.7318, 4.8122],
+          [-75.7355, 4.8125]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "stop",
+        "stopId": "stop-01",
+        "name": "Parada Los Almendros",
+        "order": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.6961, 4.8133]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "stop",
+        "stopId": "stop-02",
+        "name": "Parada El Roble",
+        "order": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.7068, 4.8136]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "stop",
+        "stopId": "stop-03",
+        "name": "Parada Las Acacias",
+        "order": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.7195, 4.8117]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "stop",
+        "stopId": "stop-04",
+        "name": "Parada La Ceiba",
+        "order": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.7318, 4.8122]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "kind": "stop",
+        "stopId": "stop-05",
+        "name": "Parada Los Guaduales",
+        "order": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.7355, 4.8125]
+      }
+    }
+  ]
+}
