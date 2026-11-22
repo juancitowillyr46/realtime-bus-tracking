@@ -1,4 +1,4 @@
-namespace BusTracking.Simulator;
+namespace BusTracking.Core.Routes;
 
 public static class RoutesDirectoryLocator
 {
@@ -23,6 +23,6 @@ public static class RoutesDirectoryLocator
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find 'data/routes' above '{startDirectory}'. Set Simulator:RoutesDirectory.");
+            $"Could not find 'data/routes' above '{startDirectory}'. Configure the routes directory explicitly.");
     }
 }

@@ -1,8 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
-using BusTracking.Core;
 
-namespace BusTracking.Simulator;
+namespace BusTracking.Core.Routes;
 
 /// <summary>
 /// Reads routes drawn in geojson.io: a FeatureCollection with exactly one LineString

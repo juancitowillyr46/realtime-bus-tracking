@@ -58,4 +58,53 @@ public sealed class RoutePath
 
         return new RoutePosition(point, GeoMath.BearingDegrees(start, end));
     }
+
+    /// <summary>
+    /// How far along the route, in meters from its start, the point of the line closest
+    /// to <paramref name="point"/> lies. Points beyond either end clamp to 0 or the total length.
+    /// </summary>
+    /// <remarks>
+    /// Each segment is projected on a local flat plane around its start, which is accurate for
+    /// segments of a few hundred meters. A route that passes twice near the same place resolves
+    /// to whichever segment is closest.
+    /// </remarks>
+    public double DistanceAlong(GeoPoint point)
+    {
+        var bestDistanceAlong = 0.0;
+        var bestOffsetSquared = double.MaxValue;
+
+        for (var segment = 0; segment < _points.Length - 1; segment++)
+        {
+            var start = _points[segment];
+            var (endX, endY) = ToLocalMeters(start, _points[segment + 1]);
+            var (pointX, pointY) = ToLocalMeters(start, point);
+
+            var lengthSquared = (endX * endX) + (endY * endY);
+            var fraction = lengthSquared > 0
+                ? Math.Clamp(((pointX * endX) + (pointY * endY)) / lengthSquared, 0, 1)
+                : 0;
+
+            var offsetX = pointX - (fraction * endX);
+            var offsetY = pointY - (fraction * endY);
+            var offsetSquared = (offsetX * offsetX) + (offsetY * offsetY);
+
+            if (offsetSquared < bestOffsetSquared)
+            {
+                bestOffsetSquared = offsetSquared;
+                var segmentLength = _cumulativeMeters[segment + 1] - _cumulativeMeters[segment];
+                bestDistanceAlong = _cumulativeMeters[segment] + (fraction * segmentLength);
+            }
+        }
+
+        return bestDistanceAlong;
+    }
+
+    // Equirectangular projection: east and north offsets in meters from origin.
+    private static (double X, double Y) ToLocalMeters(GeoPoint origin, GeoPoint point)
+    {
+        const double metersPerDegree = Math.PI * GeoMath.EarthRadiusMeters / 180;
+        var x = (point.Longitude - origin.Longitude) * metersPerDegree * Math.Cos(origin.Latitude * Math.PI / 180);
+        var y = (point.Latitude - origin.Latitude) * metersPerDegree;
+        return (x, y);
+    }
 }

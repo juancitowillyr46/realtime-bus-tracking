@@ -71,4 +71,41 @@ public class RoutePathTests
         Assert.Equal(90, path.PositionAt(firstSegment / 2).HeadingDegrees, 1e-3);
         Assert.Equal(0, path.PositionAt(firstSegment + 10).HeadingDegrees, 1e-3);
     }
+
+    [Fact]
+    public void DistanceAlong_AVertex_IsItsCumulativeDistance()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        Assert.Equal(0, path.DistanceAlong(Start), 0.5);
+        Assert.Equal(GeoMath.DistanceMeters(Start, Middle), path.DistanceAlong(Middle), 0.5);
+        Assert.Equal(path.TotalLengthMeters, path.DistanceAlong(End), 0.5);
+    }
+
+    [Fact]
+    public void DistanceAlong_APointBesideASegment_ProjectsOntoIt()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        // About 110 m north of the middle of the first (eastbound) segment.
+        var distance = path.DistanceAlong(new GeoPoint(0.001, 0.005));
+
+        Assert.Equal(GeoMath.DistanceMeters(Start, Middle) / 2, distance, 1);
+    }
+
+    [Fact]
+    public void DistanceAlong_APointBeforeTheStart_IsZero()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        Assert.Equal(0, path.DistanceAlong(new GeoPoint(0, -0.005)), 1e-9);
+    }
+
+    [Fact]
+    public void DistanceAlong_APointAfterTheEnd_IsTheTotalLength()
+    {
+        var path = new RoutePath([Start, Middle, End]);
+
+        Assert.Equal(path.TotalLengthMeters, path.DistanceAlong(new GeoPoint(0.02, 0.01)), 1e-6);
+    }
 }
