@@ -269,7 +269,7 @@ La posición del propio bus que se ve en el mapa del conductor es la que **devue
 | Perfil `lan`, Firewall y red privada | El iPhone no llega a `localhost` | La API escucha en `0.0.0.0:5080`, con los puertos 5080 y 8081 abiertos |
 | Paquetes de prueba más nuevos | Vulnerabilidades conocidas en dependencias (SSH.NET, SignalR.Common) | Testcontainers 4.17 y SignalR.Client 10.0.15 |
 | Preset `jest-expo/node` | El preset por defecto falla en el SDK 58 | Las pruebas de lógica pura corren en Node |
-| Sin GIF del modo conductor | El video mostraba la ubicación real de quien probaba | Solo se publicó el GIF del modo padre, con datos simulados |
+| GIF del modo conductor con el mapa oculto | El video mostraba la ubicación real de quien probaba | El GIF (`docs/media/driver-mode.gif`) muestra la pantalla de inicio y el panel de envío; el mapa y el aviso de distancia a la ruta se reemplazaron por un recuadro "Mapa oculto por privacidad" |
 
 ## 12. Limitaciones y camino a producción con GPS real
 
