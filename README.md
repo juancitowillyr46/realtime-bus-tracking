@@ -4,25 +4,17 @@ Prueba de concepto: buses escolares simulados reportan su ubicación, un backend
 
 **Estado: fase 2 de 5.** Los buses se mueven en vivo en un mapa, en el iPhone (Expo Go) y en el navegador. El modo conductor, las geocercas y el historial llegan en las fases siguientes ([roadmap](docs/brief.md#roadmap)).
 
+<p align="center">
+  <img src="docs/media/live-map.gif" alt="La app en un iPhone: dos buses se mueven por la Ruta Occidente; al tocar el Bus 01 aparece su próxima parada, velocidad y rumbo" width="300">
+</p>
+
 ## Arquitectura
 
-```mermaid
-flowchart TD
-    SIM["Simulador<br/>buses sobre rutas GeoJSON"] -->|POST /api/locations| API
-    API["API de ingesta<br/>valida y publica"] --> MQ
-    MQ[["RabbitMQ<br/>exchange tracking.events (topic)"]]
-    MQ -->|"realtime.location<br/>(cola durable)"| RT["Consumidor de tiempo real<br/>agrega la próxima parada"]
-    RT --> HUB["Hub de SignalR<br/>/hubs/tracking"]
-    HUB -->|WebSocket| APP["App Expo<br/>mapa en iPhone y web"]
-    MQ -->|"location.updated.#"| TAIL["EventTail<br/>consola de depuración"]
-    MQ -.->|"tras 3 intentos fallidos"| DLQ[["tracking.dlx →<br/>tracking.dead-letter"]]
+<p align="center">
+  <img src="docs/media/architecture.svg" alt="Diagrama de arquitectura: simulador, API de ingesta, RabbitMQ con la cola realtime.location y la cola de fallidos, consumidor de tiempo real y hub de SignalR dentro de la API, y la app Expo; en punteado el modo conductor, las geocercas y el historial" width="100%">
+</p>
 
-    DRV["Modo conductor (fase 3)"] -.-> API
-    MQ -.->|fase 4| GEO["Worker de geocercas"]
-    MQ -.->|fase 5| HIS["Worker de historial"]
-```
-
-Las líneas continuas ya existen; las punteadas están planeadas. El consumidor de tiempo real y el hub corren dentro del proceso de la API.
+Las líneas continuas ya existen; las punteadas están planeadas. El consumidor de tiempo real y el hub corren dentro del proceso de la API. El diagrama es [`docs/media/architecture.svg`](docs/media/architecture.svg).
 
 | Evento | Clave de enrutamiento | Lo publica | Colas |
 | --- | --- | --- | --- |

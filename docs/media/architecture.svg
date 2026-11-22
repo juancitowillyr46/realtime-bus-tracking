@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">Arquitectura de realtime-bus-tracking, fase 2</title>
+  <desc id="desc">El simulador envía ubicaciones a la API de ingesta, que las publica en el exchange tracking.events de RabbitMQ. La cola realtime.location alimenta al consumidor de tiempo real, que las envía por SignalR a la app Expo. Los mensajes que fallan 3 veces van a tracking.dead-letter. EventTail imprime los eventos. El modo conductor, las geocercas y el historial están planeados.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3A3E45"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9AA0A8"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1F5FBF"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1200" height="680" rx="16" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="40" y="48" font-size="24" font-weight="700" fill="#1B1D21">Arquitectura · fase 2</text>
+  <text x="40" y="72" font-size="14" fill="#5B5F66">Del bus al mapa: cada ubicación pasa por RabbitMQ y llega a la app por SignalR</text>
+
+  <!-- ===== Producers ===== -->
+  <rect x="40" y="120" width="200" height="84" rx="12" fill="#FFFFFF" stroke="#3A3E45" stroke-width="1.5"/>
+  <text x="140" y="155" font-size="16" font-weight="700" fill="#1B1D21" text-anchor="middle">Simulador</text>
+  <text x="140" y="178" font-size="13" fill="#5B5F66" text-anchor="middle">2 buses en rutas GeoJSON</text>
+  <text x="140" y="195" font-size="12" fill="#5B5F66" text-anchor="middle">un reporte cada 5 s</text>
+
+  <rect x="40" y="240" width="200" height="84" rx="12" fill="#FFFFFF" stroke="#9AA0A8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="140" y="275" font-size="16" font-weight="700" fill="#5B5F66" text-anchor="middle">Modo conductor</text>
+  <text x="140" y="298" font-size="13" fill="#5B5F66" text-anchor="middle">GPS del iPhone · fase 3</text>
+
+  <!-- ===== Ingest API ===== -->
+  <rect x="300" y="160" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#3A3E45" stroke-width="1.5"/>
+  <text x="400" y="196" font-size="16" font-weight="700" fill="#1B1D21" text-anchor="middle">API de ingesta</text>
+  <text x="400" y="220" font-size="13" fill="#1F5FBF" text-anchor="middle" font-family="Consolas, 'Courier New', monospace">POST /api/locations</text>
+  <text x="400" y="244" font-size="13" fill="#5B5F66" text-anchor="middle">valida y publica</text>
+  <text x="400" y="261" font-size="12" fill="#5B5F66" text-anchor="middle">(publisher confirms)</text>
+
+  <!-- Simulator -> API -->
+  <path d="M240 162 H270 V195 H298" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Driver -> API (planned) -->
+  <path d="M240 282 H270 V235 H298" fill="none" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-muted)"/>
+
+  <!-- ===== RabbitMQ ===== -->
+  <rect x="560" y="100" width="290" height="330" rx="16" fill="#FFF7E6" stroke="#F2A900" stroke-width="2"/>
+  <text x="580" y="130" font-size="16" font-weight="700" fill="#8A5000">RabbitMQ</text>
+
+  <rect x="580" y="148" width="250" height="60" rx="10" fill="#FFFFFF" stroke="#E0B54A" stroke-width="1.5"/>
+  <text x="705" y="174" font-size="14" font-weight="700" fill="#1B1D21" text-anchor="middle" font-family="Consolas, 'Courier New', monospace">tracking.events</text>
+  <text x="705" y="195" font-size="12" fill="#5B5F66" text-anchor="middle">exchange topic · durable</text>
+
+  <rect x="580" y="250" width="250" height="60" rx="10" fill="#FFFFFF" stroke="#E0B54A" stroke-width="1.5"/>
+  <text x="705" y="276" font-size="14" font-weight="700" fill="#1B1D21" text-anchor="middle" font-family="Consolas, 'Courier New', monospace">realtime.location</text>
+  <text x="705" y="297" font-size="12" fill="#5B5F66" text-anchor="middle">cola quorum · ack manual · prefetch 10</text>
+
+  <rect x="580" y="352" width="250" height="60" rx="10" fill="#FFFFFF" stroke="#E0B54A" stroke-width="1.5"/>
+  <text x="705" y="378" font-size="13" font-weight="700" fill="#1B1D21" text-anchor="middle" font-family="Consolas, 'Courier New', monospace">tracking.dlx → dead-letter</text>
+  <text x="705" y="399" font-size="12" fill="#5B5F66" text-anchor="middle">mensajes que fallaron 3 veces</text>
+
+  <!-- API -> exchange -->
+  <path d="M500 215 H535 V178 H578" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="400" y="150" font-size="12" fill="#3A3E45" text-anchor="middle">publica <tspan font-family="Consolas, 'Courier New', monospace">LocationUpdated</tspan></text>
+
+  <!-- exchange -> queue -->
+  <path d="M705 208 V248" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="715" y="233" font-size="12" fill="#3A3E45" font-family="Consolas, 'Courier New', monospace">location.updated.*</text>
+
+  <!-- queue -> DLQ -->
+  <path d="M705 310 V350" fill="none" stroke="#9AA0A8" stroke-width="2" marker-end="url(#arrow-muted)"/>
+  <text x="715" y="335" font-size="12" fill="#5B5F66">3 intentos fallidos</text>
+
+  <!-- ===== API process: realtime ===== -->
+  <rect x="900" y="140" width="260" height="190" rx="16" fill="#EDF3FC" stroke="#1F5FBF" stroke-width="2"/>
+  <text x="920" y="168" font-size="14" font-weight="700" fill="#174A94">Dentro del proceso de la API</text>
+
+  <rect x="920" y="182" width="220" height="60" rx="10" fill="#FFFFFF" stroke="#8FB0E0" stroke-width="1.5"/>
+  <text x="1030" y="207" font-size="14" font-weight="700" fill="#1B1D21" text-anchor="middle">Consumidor de tiempo real</text>
+  <text x="1030" y="228" font-size="12" fill="#5B5F66" text-anchor="middle">próxima parada · descarta viejas</text>
+
+  <rect x="920" y="258" width="220" height="56" rx="10" fill="#FFFFFF" stroke="#8FB0E0" stroke-width="1.5"/>
+  <text x="1030" y="282" font-size="14" font-weight="700" fill="#1B1D21" text-anchor="middle">Hub de SignalR</text>
+  <text x="1030" y="302" font-size="12" fill="#1F5FBF" text-anchor="middle" font-family="Consolas, 'Courier New', monospace">/hubs/tracking</text>
+
+  <!-- queue -> consumer -->
+  <path d="M830 280 H865 V212 H918" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- consumer -> hub -->
+  <path d="M1030 242 V256" fill="none" stroke="#1F5FBF" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- ===== App ===== -->
+  <rect x="900" y="410" width="260" height="96" rx="16" fill="#FFFFFF" stroke="#1F5FBF" stroke-width="2.5"/>
+  <circle cx="930" cy="440" r="9" fill="#F2A900" stroke="#1B1D21" stroke-width="2"/>
+  <text x="948" y="446" font-size="16" font-weight="700" fill="#1B1D21">App Expo</text>
+  <text x="920" y="473" font-size="13" fill="#5B5F66">iPhone · Apple Maps (Expo Go)</text>
+  <text x="920" y="493" font-size="13" fill="#5B5F66">Navegador · OpenStreetMap</text>
+
+  <!-- hub -> app -->
+  <path d="M1030 314 V408" fill="none" stroke="#1F5FBF" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+  <text x="1040" y="360" font-size="12" fill="#174A94">WebSocket</text>
+  <text x="1040" y="377" font-size="12" fill="#174A94" font-family="Consolas, 'Courier New', monospace">busMoved</text>
+
+  <!-- ===== Bottom row ===== -->
+  <rect x="300" y="490" width="200" height="72" rx="12" fill="#FFFFFF" stroke="#3A3E45" stroke-width="1.5"/>
+  <text x="400" y="520" font-size="15" font-weight="700" fill="#1B1D21" text-anchor="middle">EventTail</text>
+  <text x="400" y="542" font-size="12" fill="#5B5F66" text-anchor="middle">consola que imprime todo</text>
+
+  <rect x="560" y="490" width="135" height="72" rx="12" fill="#FFFFFF" stroke="#9AA0A8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="627" y="520" font-size="14" font-weight="700" fill="#5B5F66" text-anchor="middle">Geocercas</text>
+  <text x="627" y="542" font-size="12" fill="#5B5F66" text-anchor="middle">ETA · fase 4</text>
+
+  <rect x="715" y="490" width="135" height="72" rx="12" fill="#FFFFFF" stroke="#9AA0A8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="782" y="520" font-size="14" font-weight="700" fill="#5B5F66" text-anchor="middle">Historial</text>
+  <text x="782" y="542" font-size="12" fill="#5B5F66" text-anchor="middle">fase 5</text>
+
+  <rect x="715" y="596" width="135" height="52" rx="12" fill="#FFFFFF" stroke="#9AA0A8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="782" y="618" font-size="13" font-weight="700" fill="#5B5F66" text-anchor="middle">PostgreSQL</text>
+  <text x="782" y="636" font-size="12" fill="#5B5F66" text-anchor="middle">+ PostGIS</text>
+
+  <!-- RabbitMQ -> EventTail -->
+  <path d="M590 430 V460 H400 V488" fill="none" stroke="#3A3E45" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="412" y="478" font-size="12" fill="#3A3E45" font-family="Consolas, 'Courier New', monospace">#  (cola temporal)</text>
+  <!-- RabbitMQ -> geofence / history (planned) -->
+  <path d="M640 430 V488" fill="none" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-muted)"/>
+  <path d="M782 430 V488" fill="none" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-muted)"/>
+  <path d="M782 562 V594" fill="none" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-muted)"/>
+
+  <!-- ===== Legend ===== -->
+  <g font-size="13" fill="#5B5F66">
+    <line x1="900" y1="560" x2="944" y2="560" stroke="#3A3E45" stroke-width="2"/>
+    <text x="954" y="565">existe hoy</text>
+    <line x1="900" y1="590" x2="944" y2="590" stroke="#9AA0A8" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="954" y="595">planeado (fases 3 a 5)</text>
+    <rect x="900" y="610" width="44" height="22" rx="6" fill="#FFF7E6" stroke="#F2A900" stroke-width="1.5"/>
+    <text x="954" y="626">corre en Docker</text>
+  </g>
+</svg>
