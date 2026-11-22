@@ -2,7 +2,7 @@
 
 Prueba de concepto: buses escolares simulados reportan su ubicación, un backend en .NET distribuye cada evento por RabbitMQ a consumidores independientes y una app en React Native (Expo) muestra los buses moviéndose en un mapa en tiempo real.
 
-**Estado: fase 2 de 5.** Los buses se mueven en vivo en un mapa, en el iPhone (Expo Go) y en el navegador. El modo conductor, las geocercas y el historial llegan en las fases siguientes ([roadmap](docs/brief.md#roadmap)).
+**Estado: fase 3 de 5.** Los buses se mueven en vivo en un mapa, en el iPhone (Expo Go) y en el navegador, y el iPhone puede hacer de bus en el **modo conductor** enviando su GPS real. Las geocercas y el historial llegan en las fases siguientes ([roadmap](docs/brief.md#roadmap)).
 
 <p align="center">
   <img src="docs/media/live-map.gif" alt="La app en un iPhone: dos buses se mueven por la Ruta Occidente; al tocar el Bus 01 aparece su próxima parada, velocidad y rumbo" width="300">
@@ -14,7 +14,7 @@ Prueba de concepto: buses escolares simulados reportan su ubicación, un backend
   <img src="docs/media/architecture.svg" alt="Diagrama de arquitectura: simulador, API de ingesta, RabbitMQ con la cola realtime.location y la cola de fallidos, consumidor de tiempo real y hub de SignalR dentro de la API, y la app Expo; en punteado el modo conductor, las geocercas y el historial" width="100%">
 </p>
 
-Las líneas continuas ya existen; las punteadas están planeadas. El consumidor de tiempo real y el hub corren dentro del proceso de la API. El diagrama es [`docs/media/architecture.svg`](docs/media/architecture.svg).
+Las líneas continuas ya existen; las punteadas están planeadas. El consumidor de tiempo real y el hub corren dentro del proceso de la API. El modo conductor usa el mismo `POST /api/locations` que el simulador, así que el resto del camino es idéntico. El diagrama es [`docs/media/architecture.svg`](docs/media/architecture.svg).
 
 | Evento | Clave de enrutamiento | Lo publica | Colas |
 | --- | --- | --- | --- |
@@ -65,8 +65,9 @@ Hay peticiones de ejemplo en [`BusTracking.Api.http`](backend/src/BusTracking.Ap
 | --- | --- |
 | `POST /api/locations` | Recibe un reporte de ubicación y publica `LocationUpdated` |
 | `GET /api/routes`, `GET /api/routes/{routeId}` | Las rutas, con su recorrido y paradas, para dibujarlas |
+| `GET /api/buses` | La flota (`Fleet:BusIds`) y qué buses están en uso: reportaron en los últimos 60 s |
 | `GET /health` | `200` mientras la conexión con RabbitMQ esté abierta |
-| SignalR `/hubs/tracking` | `JoinRoute(routeId)` devuelve las posiciones actuales de los buses y suscribe a `busMoved` |
+| SignalR `/hubs/tracking` | `JoinRoute(routeId)` devuelve las posiciones actuales de los buses y suscribe a `busMoved`. Cada posición trae la próxima parada y `distanceFromRouteMeters` |
 
 ## La app
 
@@ -82,7 +83,15 @@ npx expo login                # the same free Expo account you use in Expo Go
 npx expo start                # scan the QR code with the iPhone camera; press w for the browser
 ```
 
-La app sigue la primera ruta y muestra la próxima parada, la velocidad y el rumbo de cada bus. Se reconecta sola: mientras no llega al servidor, muestra "Reconectando" y deja los buses en gris en su última posición conocida.
+La app tiene dos modos:
+
+- **Padre** (al abrirla): sigue la primera ruta y muestra la próxima parada, la velocidad y el rumbo de cada bus. Se reconecta sola: mientras no llega al servidor, muestra "Reconectando" y deja los buses en gris en su última posición conocida.
+- **Conductor** (botón "Modo conductor"): eliges un bus libre de la flota y la ruta, y la app envía el GPS del iPhone a `POST /api/locations` cada 5 s.
+  - Las lecturas con precisión peor que 30 m no se envían ("Señal GPS débil").
+  - A más de 150 m de la línea de la ruta aparece "Estás fuera de la ruta"; se sigue enviando, sin próxima parada.
+  - Expo Go solo lee el GPS **con la app abierta**: si la cierras o bloqueas el teléfono, el envío se detiene. El GPS en segundo plano necesita un *development build* (fase 6).
+
+Para la demo: el iPhone en modo conductor y el navegador del PC en modo padre (`w` en la terminal de Expo), viendo moverse tu recorrido.
 
 ### Conectar el teléfono al PC
 
@@ -120,7 +129,7 @@ dotnet test backend/BusTracking.slnx     # unit + integration (Testcontainers: D
 cd mobile && npm run typecheck && npm run lint && npm test
 ```
 
-Las pruebas de integración recorren todo el camino en tiempo real con un RabbitMQ real: `POST /api/locations` → RabbitMQ → `realtime.location` → cliente de SignalR. También cubren los reintentos, la cola de fallidos y la idempotencia.
+Las pruebas de integración recorren todo el camino en tiempo real con un RabbitMQ real: `POST /api/locations` → RabbitMQ → `realtime.location` → cliente de SignalR. También cubren los reintentos, la cola de fallidos, la idempotencia y la flota. En la app, jest prueba la lógica pura: posiciones viejas, formatos, la conversión de las lecturas del GPS y la latencia.
 
 ## Métricas
 
@@ -128,7 +137,7 @@ Las pruebas de integración recorren todo el camino en tiempo real con un Rabbit
 | --- | --- | --- | --- |
 | Simulador → RabbitMQ → EventTail | 4 ms | 16 ms | Fase 1, 26 mensajes en un PC local |
 
-Falta medir la latencia de punta a punta hasta la app (`ahora - recordedAt` en el teléfono, p50 y p95).
+Falta medir la latencia de punta a punta hasta la app (`ahora - recordedAt`, p50 y p95). En desarrollo, la app la escribe cada minuto en la terminal de Expo: `latency to app over N positions: p50 … ms, p95 … ms`.
 
 ## Documentación
 
