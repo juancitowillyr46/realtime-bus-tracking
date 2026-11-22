@@ -35,8 +35,11 @@ export interface BusPosition {
   heading: number;
   /** ISO 8601, UTC: when the bus recorded this position. */
   recordedAt: string;
+  /** Null when the route is unknown, has no stops or the bus is off the route. */
   nextStopId: string | null;
   nextStopName: string | null;
+  /** Meters from the route's line; more than 150 means off the route. Null when the route is unknown. */
+  distanceFromRouteMeters: number | null;
 }
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';

@@ -46,6 +46,7 @@ public sealed class TrackingHubTests : IClassFixture<RabbitMqFixture>, IDisposab
         Assert.Equal(Latitude, position.Latitude);
         Assert.Equal("stop-02", position.NextStopId);
         Assert.Equal("Parada B", position.NextStopName);
+        Assert.Equal(0, position.DistanceFromRouteMeters!.Value, 1);
     }
 
     [Fact]

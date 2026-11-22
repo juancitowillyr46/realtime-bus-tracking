@@ -68,7 +68,16 @@ public sealed class RoutePath
     /// segments of a few hundred meters. A route that passes twice near the same place resolves
     /// to whichever segment is closest.
     /// </remarks>
-    public double DistanceAlong(GeoPoint point)
+    public double DistanceAlong(GeoPoint point) => Project(point).DistanceAlong;
+
+    /// <summary>
+    /// How far, in meters, <paramref name="point"/> is from the closest point of the line.
+    /// Zero when it lies on the line; beyond either end it is the distance to that end.
+    /// </summary>
+    public double DistanceFromLine(GeoPoint point) => Project(point).DistanceFromLine;
+
+    // Projects the point onto every segment and keeps the closest one.
+    private (double DistanceAlong, double DistanceFromLine) Project(GeoPoint point)
     {
         var bestDistanceAlong = 0.0;
         var bestOffsetSquared = double.MaxValue;
@@ -96,7 +105,7 @@ public sealed class RoutePath
             }
         }
 
-        return bestDistanceAlong;
+        return (bestDistanceAlong, Math.Sqrt(bestOffsetSquared));
     }
 
     // Equirectangular projection: east and north offsets in meters from origin.

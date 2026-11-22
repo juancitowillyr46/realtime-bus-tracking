@@ -36,7 +36,9 @@ public sealed class RealtimeLocationConsumer : RabbitMqConsumer<LocationUpdated>
 
     protected override async Task HandleAsync(LocationUpdated message, CancellationToken cancellationToken)
     {
-        var nextStop = _routes.Find(message.RouteId)?.NextStop(new GeoPoint(message.Latitude, message.Longitude));
+        var point = new GeoPoint(message.Latitude, message.Longitude);
+        var route = _routes.Find(message.RouteId);
+        var nextStop = route?.NextStop(point);
         var position = new BusPosition(
             message.EventId,
             message.BusId,
@@ -47,7 +49,8 @@ public sealed class RealtimeLocationConsumer : RabbitMqConsumer<LocationUpdated>
             message.Heading,
             message.RecordedAt,
             nextStop?.StopId,
-            nextStop?.Name);
+            nextStop?.Name,
+            route is null ? null : Math.Round(route.Path.DistanceFromLine(point), 1));
 
         if (!_tracker.TryUpdate(position))
         {

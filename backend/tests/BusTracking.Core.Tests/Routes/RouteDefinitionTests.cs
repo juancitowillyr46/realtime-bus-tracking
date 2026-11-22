@@ -58,4 +58,25 @@ public class RouteDefinitionTests
 
         Assert.Null(route.NextStop(Corner));
     }
+
+    [Fact]
+    public void NextStop_OffTheRoute_IsNull()
+    {
+        var route = CreateRoute(First, Second, Third);
+
+        // About 220 m north of the first segment, beyond the 150 m threshold.
+        var offRoute = new GeoPoint(0.002, 0.005);
+
+        Assert.True(route.IsOffRoute(offRoute));
+        Assert.Null(route.NextStop(offRoute));
+    }
+
+    [Fact]
+    public void IsOffRoute_WithinTheThreshold_IsFalse()
+    {
+        var route = CreateRoute(First, Second, Third);
+
+        // About 110 m from the line: a normal GPS error in a city.
+        Assert.False(route.IsOffRoute(new GeoPoint(0.001, 0.005)));
+    }
 }
