@@ -5,8 +5,11 @@ Prueba de concepto: buses escolares simulados reportan su ubicación, un backend
 **Estado: fase 3 de 5.** Los buses se mueven en vivo en un mapa, en el iPhone (Expo Go) y en el navegador, y el iPhone puede hacer de bus en el **modo conductor** enviando su GPS real. Las geocercas y el historial llegan en las fases siguientes ([roadmap](docs/brief.md#roadmap)).
 
 <p align="center">
-  <img src="docs/media/live-map.gif" alt="La app en un iPhone: dos buses se mueven por la Ruta Occidente; al tocar el Bus 01 aparece su próxima parada, velocidad y rumbo" width="300">
+  <img src="docs/media/live-map.gif" alt="Modo padre en un iPhone: dos buses se mueven por la Ruta Occidente; al tocar el Bus 01 aparece su próxima parada, velocidad y rumbo" width="280">
+  &nbsp;&nbsp;
+  <img src="docs/media/driver-mode.gif" alt="Modo conductor en un iPhone: se elige el Bus 05, la app busca señal GPS y empieza a enviar la ubicación; el contador de posiciones enviadas sube de 0 a 3. El mapa está oculto por privacidad" width="280">
 </p>
+<p align="center"><sub>Modo padre (buses simulados) · Modo conductor (GPS real, mapa oculto por privacidad)</sub></p>
 
 ## Arquitectura
 

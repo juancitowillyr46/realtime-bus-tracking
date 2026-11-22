@@ -147,7 +147,7 @@ Commit: `docs: update readme for phase 3`
 - El modo conductor funcionó en un iPhone con Expo Go: la flota marcó "En uso" los buses del simulador, el GPS dio una precisión de **±12 a 14 m** y las posiciones llegaron de vuelta por SignalR.
 - La prueba se hizo lejos de `route-01`, así que apareció "Estás fuera de la ruta (6,3 km)" y no hubo próxima parada, como se diseñó.
 - **Corrección hecha después de la prueba:** con el teléfono quieto, iOS deja de entregar lecturas y la app dejaba de enviar ("Último envío hace 12 s"). Ahora reenvía la última lectura con la hora actual mientras tenga menos de 30 s (`planSend` en `driver/report.ts`).
-- Por privacidad no se publicó un GIF del modo conductor: el video muestra la ubicación real de quien prueba.
+- Por privacidad, el GIF del modo conductor (`docs/media/driver-mode.gif`) oculta el mapa y el aviso de distancia a la ruta: el video mostraba la ubicación real de quien probaba.
 
 ## Para preparar la fase 4
 
