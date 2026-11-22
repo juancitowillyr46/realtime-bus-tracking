@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BusTracking.Contracts/BusTracking.Contracts.csproj" />
+    <Project Path="src/BusTracking.Core/BusTracking.Core.csproj" />
+    <Project Path="src/BusTracking.Messaging/BusTracking.Messaging.csproj" />
+    <Project Path="src/BusTracking.Api/BusTracking.Api.csproj" />
+    <Project Path="src/BusTracking.Simulator/BusTracking.Simulator.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/BusTracking.EventTail/BusTracking.EventTail.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BusTracking.Core.Tests/BusTracking.Core.Tests.csproj" />
+    <Project Path="tests/BusTracking.Simulator.Tests/BusTracking.Simulator.Tests.csproj" />
+    <Project Path="tests/BusTracking.Api.IntegrationTests/BusTracking.Api.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

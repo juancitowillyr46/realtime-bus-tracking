@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.trx
+
+# IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.user
+*.suo
+
+# Secrets and local settings
+.env
+*.env.local
+appsettings.*.local.json
+
+# Node / Expo (phase 2+)
+node_modules/
+.expo/
+
+# OS
+.DS_Store
+Thumbs.db
