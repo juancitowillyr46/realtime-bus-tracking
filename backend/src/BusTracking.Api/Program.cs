@@ -1,14 +1,22 @@
+using BusTracking.Api;
 using BusTracking.Contracts;
 using BusTracking.Core;
+using BusTracking.Core.Routes;
 using BusTracking.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddRouteCatalog();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+// Fail at startup, not on the first request, when the routes are missing or invalid.
+app.Services.GetRequiredService<RouteCatalog>();
+
+app.MapRouteEndpoints();
 
 app.MapPost("/api/locations", async (
     LocationReport report,
