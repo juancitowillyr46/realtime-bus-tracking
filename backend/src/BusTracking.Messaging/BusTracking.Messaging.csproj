@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BusTracking.Contracts\BusTracking.Contracts.csproj" />
+    <ProjectReference Include="..\BusTracking.Core\BusTracking.Core.csproj" />
   </ItemGroup>
 
 </Project>

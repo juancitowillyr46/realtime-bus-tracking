@@ -1,5 +1,8 @@
+using BusTracking.Messaging;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Testcontainers.RabbitMq;
 
@@ -34,6 +37,19 @@ public sealed class RabbitMqFixture : IAsyncLifetime
                     ["RabbitMq:Password"] = Password,
                     ["RabbitMq:VirtualHost"] = "/",
                 })));
+
+    /// <summary>A connection provider for running a consumer or publisher outside the API.</summary>
+    public RabbitMqConnectionProvider CreateConnectionProvider() =>
+        new(
+            Options.Create(new RabbitMqOptions
+            {
+                HostName = _container.Hostname,
+                Port = _container.GetMappedPublicPort(AmqpPort),
+                UserName = UserName,
+                Password = Password,
+                VirtualHost = "/",
+            }),
+            NullLogger<RabbitMqConnectionProvider>.Instance);
 
     public Task<IConnection> CreateConnectionAsync() =>
         new ConnectionFactory
