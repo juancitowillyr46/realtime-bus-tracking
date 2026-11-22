@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:5080
+
+### Health (checks the RabbitMQ connection)
+GET {{baseUrl}}/health
+
+### Valid location: 202 Accepted with the eventId
+POST {{baseUrl}}/api/locations
+Content-Type: application/json
+
+{
+  "busId": "bus-99",
+  "routeId": "route-01",
+  "latitude": 4.8133,
+  "longitude": -75.6961,
+  "speedKmh": 25,
+  "heading": 270,
+  "recordedAt": "{{$datetime iso8601}}"
+}
+
+### Invalid location: 400 with the errors in Spanish
+POST {{baseUrl}}/api/locations
+Content-Type: application/json
+
+{
+  "busId": "",
+  "routeId": "route-01",
+  "latitude": 120,
+  "longitude": -75.6961,
+  "speedKmh": 25,
+  "heading": 270,
+  "recordedAt": "{{$datetime iso8601}}"
+}
