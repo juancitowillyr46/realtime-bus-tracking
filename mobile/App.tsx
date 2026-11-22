@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { secondsSince, sortedBuses } from './src/busStore';
 import type { ConnectionStatus } from './src/types';
@@ -25,7 +25,7 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>{route?.name ?? 'Cargando ruta…'}</Text>
         <Text style={styles.status}>{statusLabels[status]}</Text>
@@ -44,13 +44,13 @@ export default function App() {
         ))}
       </ScrollView>
       <StatusBar style="dark" />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
-  content: { padding: 20, gap: 12 },
+  content: { padding: 20, paddingTop: 64, gap: 12 },
   title: { fontSize: 22, fontWeight: '700', color: '#1B1D21' },
   status: { fontSize: 15, color: '#1E7B4B', fontWeight: '600' },
   error: { fontSize: 15, color: '#B42318' },

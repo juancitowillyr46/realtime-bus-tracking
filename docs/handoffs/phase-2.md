@@ -43,8 +43,8 @@ El mock-up de la app está en https://claude.ai/artifact/3nmtjoUaS3Ex59Vdxiv2TT 
 
 ## Antes de empezar (lo hace el desarrollador)
 
-- [ ] **Instalar Expo Go en el iPhone X desde el App Store.** La versión del App Store llega solo hasta el **SDK 54**; las versiones nuevas (55 en adelante) no están ahí. Por eso el proyecto se fija en el **SDK 54**, que pide iOS 15.1 o superior y funciona en el iPhone X con iOS 16. Si Expo Go dice que el proyecto es incompatible, avisa antes de cambiar de SDK.
-- [x] Node.js LTS con nvm-windows: está activa la **v24.21.0** (LTS), con npm 11.19.0. El SDK 54 (React Native 0.81) pide Node 20.19.4 o superior, así que la v20.19.0 que también está instalada no sirve. Si `node --version` muestra otra versión, cámbiala con `nvm use 24.21.0`.
+- [x] **Instalar Expo Go en el iPhone X desde el App Store.** El App Store solo ofrece la última versión de Expo Go, que es para el **SDK 58**. El plan fijaba primero el SDK 54 por una fuente desactualizada, y Expo Go respondió "Project is incompatible with this version of Expo Go". Por eso el proyecto quedó en el **SDK 58**, que pide **iOS 16.4 o superior**; el iPhone X llega hasta iOS 16.7. No subas de SDK a mitad de la fase sin revisar antes qué versión ofrece Expo Go.
+- [x] Node.js LTS con nvm-windows: está activa la **v24.21.0** (LTS), con npm 11.19.0. El SDK 58 (React Native 0.88) pide Node 22.13 o superior, así que las versiones 20.x y 21.x que también están instaladas no sirven. Si `node --version` muestra otra versión, cámbiala con `nvm use 24.21.0`.
 - [ ] El iPhone y el PC en la misma red Wi-Fi.
 - [ ] (Opcional, se puede hacer en cualquier momento de la fase) Dibujar la ruta real en geojson.io y reemplazar `data/routes/route-01.geojson`, sin cambiar el `routeId`.
 
@@ -61,7 +61,7 @@ realtime-bus-tracking/
 │   │   └── BusTracking.Simulator/   # uses RouteLoader from Core
 │   ├── tools/BusTracking.EventTail/
 │   └── tests/                       # + Core and integration tests for the consumer and the hub
-├── mobile/                          # Expo app, SDK 54, TypeScript
+├── mobile/                          # Expo app, SDK 58, TypeScript
 │   ├── App.tsx
 │   ├── src/
 │   ├── .env.example
@@ -185,7 +185,7 @@ Commit: `chore: allow lan access to the api`
 
 ### Paso 6 · App Expo: base y conexión
 
-- Crear `mobile/` con `npx create-expo-app@latest mobile --template blank-typescript@sdk-54`. Verifica que `package.json` quede en `expo ~54`.
+- Crear `mobile/` con `npx create-expo-app@latest mobile --template blank-typescript@sdk-58`. Verifica que `package.json` quede en `expo ~58`.
 - Paquetes, siempre con `npx expo install` para que coincidan con el SDK: `react-native-maps`, `@microsoft/signalr`, `leaflet`, `react-leaflet` y `@types/leaflet`. `@expo/vector-icons` ya viene con Expo.
 - **Configuración:** `EXPO_PUBLIC_API_URL` en `mobile/.env`, que no se sube. Se sube `mobile/.env.example` con `EXPO_PUBLIC_API_URL=http://192.168.1.10:5080`.
 - **`src/api.ts`:** las funciones `getRoutes()` y `getRoute(routeId)`, con tipos que reflejan los contratos del backend.
@@ -248,7 +248,8 @@ Commit: `docs: update readme for phase 2`
 1. ~~**El mapa en el navegador.**~~ **Decidido:** el iPhone usa Apple Maps (`react-native-maps`) y la web usa OpenStreetMap (`react-leaflet`). `react-native-maps` no funciona en Expo web.
 2. **Aprobado.** Paquetes nuevos que usa este plan:
    - NuGet `Microsoft.AspNetCore.SignalR.Client`, solo en las pruebas;
-   - npm `react-native-maps`, `@microsoft/signalr`, `leaflet`, `react-leaflet`, `@types/leaflet`, `jest` y `jest-expo`.
+   - npm `react-native-maps`, `@microsoft/signalr`, `leaflet`, `react-leaflet`, `@types/leaflet`, `jest` y `jest-expo`;
+   - npm `react-dom` y `react-native-web`, que necesitan `react-leaflet` y Expo para web (aprobados en el paso 6).
 
    SignalR del servidor ya viene en ASP.NET Core.
 3. **Aprobado.** La próxima parada se calcula en el servidor (paso 1 y paso 4) y llega en `BusPosition`. Así la app no repite lógica geográfica, y la fase 4 reutiliza el avance sobre la ruta. No incluye ETA.
@@ -260,4 +261,4 @@ Al terminar, anota y comparte:
 - La latencia observada del simulador a la app (si es posible, con un log en la app de `ahora - recordedAt`).
 - Si la conexión del iPhone al PC funcionó con la IP local o hizo falta ngrok.
 - Si el mapa de OpenStreetMap en el navegador sirve para mostrar el modo conductor en la fase 3.
-- Problemas con el SDK 54 de Expo o con `react-native-maps` en Expo Go.
+- Problemas con el SDK 58 de Expo o con `react-native-maps` en Expo Go.
