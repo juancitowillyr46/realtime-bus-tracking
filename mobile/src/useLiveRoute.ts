@@ -38,8 +38,6 @@ export function useLiveRoute(routeId: string | null): LiveRoute {
     }
 
     let cancelled = false;
-    setRoute(null);
-    setBuses(emptyBusState);
 
     getRoute(selectedId)
       .then((details) => !cancelled && setRoute(details))
@@ -51,9 +49,12 @@ export function useLiveRoute(routeId: string | null): LiveRoute {
       onStatus: setStatus,
     });
 
+    // Runs when the route changes (or on unmount): forget the old route's map and buses.
     return () => {
       cancelled = true;
       stop();
+      setRoute(null);
+      setBuses(emptyBusState);
     };
   }, [selectedId]);
 

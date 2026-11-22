@@ -38,11 +38,13 @@ export default function LiveMap({
 
   // Follow the selected bus.
   const selected = buses.find((bus) => bus.busId === selectedBusId);
+  const selectedLatitude = selected?.latitude;
+  const selectedLongitude = selected?.longitude;
   useEffect(() => {
-    if (selected) {
-      mapRef.current?.animateCamera({ center: { latitude: selected.latitude, longitude: selected.longitude } });
+    if (selectedLatitude !== undefined && selectedLongitude !== undefined) {
+      mapRef.current?.animateCamera({ center: { latitude: selectedLatitude, longitude: selectedLongitude } });
     }
-  }, [selected?.latitude, selected?.longitude]);
+  }, [selectedLatitude, selectedLongitude]);
 
   return (
     <MapView

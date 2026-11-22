@@ -250,6 +250,10 @@ Commit: `docs: update readme for phase 2`
    - NuGet `Microsoft.AspNetCore.SignalR.Client`, solo en las pruebas;
    - npm `react-native-maps`, `@microsoft/signalr`, `leaflet`, `react-leaflet`, `@types/leaflet`, `jest` y `jest-expo`;
    - npm `react-dom` y `react-native-web`, que necesitan `react-leaflet` y Expo para web (aprobados en el paso 6).
+   - npm `@expo/vector-icons`: el SDK 58 ya no lo incluye con `expo`, así que se instala explícitamente (paso 7);
+   - npm `eslint` y `eslint-config-expo`, que instala `npx expo lint` la primera vez (paso 8).
+
+   Nota del paso 8: las pruebas usan el preset `jest-expo/node`. El preset por defecto `jest-expo` falla en el SDK 58 porque busca `expo-modules-core` en la raíz de `node_modules`, y ahí no está. Las pruebas son de lógica pura, así que el entorno de Node alcanza.
 
    SignalR del servidor ya viene en ASP.NET Core.
 3. **Aprobado.** La próxima parada se calcula en el servidor (paso 1 y paso 4) y llega en `BusPosition`. Así la app no repite lógica geográfica, y la fase 4 reutiliza el avance sobre la ruta. No incluye ETA.

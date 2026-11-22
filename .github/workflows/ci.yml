@@ -30,3 +30,30 @@ jobs:
       # Integration tests start RabbitMQ with Testcontainers (Docker is available on ubuntu runners).
       - name: Test
         run: dotnet test BusTracking.slnx --no-build --configuration Release
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      # Expo SDK 58 needs Node 22.13 or later; 24 is the current LTS.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
