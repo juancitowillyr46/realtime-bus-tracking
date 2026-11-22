@@ -39,3 +39,6 @@ GET {{baseUrl}}/api/routes/route-01
 
 ### Unknown route: 404 with the message in Spanish
 GET {{baseUrl}}/api/routes/route-99
+
+### Fleet: every bus and whether it is in use (reported in the last 60 s)
+GET {{baseUrl}}/api/buses

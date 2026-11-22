@@ -29,6 +29,15 @@ public sealed class BusPositionTracker
         }
     }
 
+    /// <summary>The current position of every bus, on any route.</summary>
+    public IReadOnlyList<BusPosition> GetAll()
+    {
+        lock (_lock)
+        {
+            return _latest.Values.ToList();
+        }
+    }
+
     /// <summary>The current position of every bus whose latest position is on <paramref name="routeId"/>.</summary>
     public IReadOnlyList<BusPosition> GetByRoute(string routeId)
     {
